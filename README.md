@@ -1,7 +1,6 @@
 # Warum der Gradient fehlt: der Löser ist eine Treppe – Streamlit-Demo
 
-<!-- TODO nach dem Deploy: direkt hierher den Live-Link setzen (Leerzeile davor und danach):
-**[→ Demo live ausprobieren](https://sebastianhanisch-nullgradient-glaettung-demo.streamlit.app/)** -->
+**[→ Demo live ausprobieren](https://sebastianhanisch-nullgradient-glaettung-demo.streamlit.app/)**
 
 Stück der Reihe **Entscheidungsorientiertes Lernen** in der „Konzepte“-Reihe für die Website „Sebastian Hanisch – Operations Research und Machine Learning“. Es baut auf `spo-kuerzester-weg-demo` auf und benutzt dasselbe Vehikel: ein abstraktes **5 × 5 Gitter** (Wege von links oben nach rechts unten, 40 Bögen, 70 Wege), in dem ein lineares Modell aus Merkmalen die Bogenkosten vorhersagt und ein exakter Löser den kürzesten Weg wählt. Gitter, Löser, Kostenwelt, Zufallsstrom (SplitMix64) und das SPO+-Training sind von dort **kopiert und umbenannt** (Herkunft im Kopf jedes Moduls), nicht importiert. Neu ist die **Glättung des Lösers**: statt des einen billigsten Weges eine Gibbs-Verteilung über alle 70 Wege.
 
