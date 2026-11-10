@@ -8,7 +8,7 @@ Zahlen-Tabelle der README -> Test:
 | Treppe: 99,7 / 97,6 / 88,1 / 60,9 % bei ±0,1 / 1 / 5 / 20 % | `test_staircase_sentence` |
 | Regret des gleichen Anteils mindestens so groß wie der des gleichen Weges | `test_equal_regret_share_is_never_below_equal_path_share` |
 | T = 0,001 bringt im Median keinen Gewinn (9 von 20, 0 von 20, 2,0 gegen 2,0 %, 15,3 gegen 13,1 %, n = 100) | `test_smallest_temperature_learns_nothing` |
-| T = 0,03 bis 3: 19 oder 20 von 20 unter KQ, Mediane 0,5 bis 0,6 / 11,6 bis 12,5, Bänder überlappen | `test_middle_temperatures_carry_without_a_ranking` |
+| T = 0,03 bis 3: 19 oder 20 von 20 unter KQ, Mediane 0,5 bis 0,6 / 11,6 bis 12,5, Bänder überlappen | `test_middle_temperatures_beat_kq_without_a_ranking` |
 | Gleichauf mit SPO+ (0,5 %; 11,9 / 11,7 / 11,6 gegen 12,3) | `test_middle_temperatures_against_spo_plus` |
 | Lineare Wahrheit (0 von 20), wenig Daten (kein T unter KQ, T = 1: 5 von 20, SPO+ 10 von 20) | `test_linear_truth_and_small_data` |
 | Kostenmaßstab: gute Zone, Verschiebung um den Faktor, Einzel-Seeds | `test_good_zone_moves_with_the_cost_scale`, `test_scaled_runs_equal_unscaled_runs_with_scaled_temperature` |
@@ -92,7 +92,7 @@ def _intervals_overlap(c, keys):
     return all(s[f"regret_gibbs_{a}"]["min"] <= s[f"regret_gibbs_{b}"]["max"] and s[f"regret_gibbs_{b}"]["min"] <= s[f"regret_gibbs_{a}"]["max"] for a in keys for b in keys)
 
 
-def test_middle_temperatures_carry_without_a_ranking():
+def test_middle_temperatures_beat_kq_without_a_ranking():
     for c in (MAIN0, MAIN5):
         assert all(c["gibbs_besser_als_kq"][t] >= 19 for t in MID)
         assert _intervals_overlap(c, MID)
@@ -181,3 +181,11 @@ def test_live_run_reproduces_the_bands():
         assert 100 * run.regret["kq"] == pytest.approx(MAIN0["regret_kq"][seed], abs=0.05)
         assert 100 * run.regret["spo"] == pytest.approx(MAIN0["regret_spo"][seed], abs=0.05)
         assert 100 * run.regret_gibbs[1.0] == pytest.approx(MAIN0["regret_gibbs_1"][seed], abs=0.05)
+
+
+def test_hand_example_text_names_exact_versus_rounded_weights():
+    """README und App rechnen 4,4621 nur mit den exakten Gewichten; die gerundeten ergäben 4,4622 (siehe test_gibbs.py)."""
+    app = (Path(__file__).resolve().parent.parent / "app.py").read_text(encoding="utf-8")
+    assert "4,4622" in README and "exakten Gewichten" in README
+    assert "4{,}4622" in app and "exakten Gewichten" in app
+    assert r"3 \cdot 0{,}2689 + 5 \cdot 0{,}7311 = 4{,}4621" not in app

@@ -29,6 +29,14 @@ def test_hand_example_weights_and_expected_cost_by_hand(two, hand_c, hand_chat, 
     assert G.expected_cost(hand_c, hand_chat, two.W_all, T)[0] == pytest.approx(3 * (1 - exact_w2) + 5 * exact_w2, rel=1e-12)
 
 
+def test_hand_example_rounded_weights_give_4_4622_exact_weights_4_4621():
+    """README und App: 4,4621 gilt nur mit den exakten Gewichten; mit den auf vier Stellen gerundeten (0,2689 / 0,7311) ergibt 3 * 0,2689 + 5 * 0,7311 = 4,4622."""
+    assert 3 * 0.2689 + 5 * 0.7311 == pytest.approx(4.4622, abs=1e-12)
+    exact_w2 = _sigma(1.0)
+    assert 3 * (1 - exact_w2) + 5 * exact_w2 == pytest.approx(4.4621, abs=5e-5)
+    assert f"{3 * (1 - exact_w2) + 5 * exact_w2:.4f}" == "4.4621"
+
+
 def test_hand_example_gradient_by_hand(two, hand_c, hand_chat):
     """d E[c^T w] / d c1hat = 2 sigma'(Delta/T)/T mit sigma' = sigma (1 - sigma); bei Delta = 1, T = 1: 2 * 0,19661 = 0,39322 und die Gegenrichtung für c2hat."""
     _, g = G.gibbs_parts(hand_c, hand_chat, two.W_all, 1.0)

@@ -80,9 +80,22 @@ Wenn die Entscheidung ein **Weg im Netz** ist und ein Modell die Kosten vorhersa
 Eine Abhilfe ist, den Löser zu **glätten**: statt des einen billigsten Weges eine **Gibbs-Verteilung über alle Wege** mit einer Temperatur T. Hier im 5 × 5 Gitter (40 Bögen, 70 Wege): erst ein Fall mit zwei Wegen von Hand,
 dann der Anteil der Fälle, in denen eine kleine Störung nichts ändert, dann das Training mit geglättetem Löser und die Frage, wie T zum Kostenmaßstab passt.
 
-Weiter unten: **🔬 vier Experimente**, **🔗 Brücke: die Ableitung am Ergebnis**, **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**.
+Wer es zuerst ohne Fachbegriffe verstehen will, öffnet „💬 In einfachen Worten“. Weiter unten: **🔬 vier Experimente**, **🔗 Brücke: die Ableitung am Ergebnis**, **🚧 Wo die Annahmen enden** und der Expander **📐 Mathematische Formulierung**.
 """
 )
+
+# erklaerseite:einfach:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/loeser-treppe-erklaert.json, nicht von Hand ändern)
+with st.expander("💬 In einfachen Worten"):
+    st.markdown(
+        """
+Ein Modell sagt Kosten voraus, und ein Löser wählt daraus den billigsten Weg. Der Regret dieses Weges, also die Mehrkosten gegenüber dem besten, ändert sich nur, wenn der gewählte Weg wechselt. Dazwischen ist er konstant, wie eine Treppe mit flachen Stufen. Wer das Modell auf den Regret trainieren will, findet auf einer Stufe keine Richtung, in die er drehen soll.
+
+Die Glättung baut daraus eine Rampe: Jeder Weg bekommt ein Gewicht, das mit seinen vorhergesagten Kosten sinkt, und der Regret wird über alle Wege gemittelt. Die Temperatur regelt, wie scharf die billigen Wege bevorzugt werden. Ist sie zu klein, kehrt die Treppe zurück. Ist sie zu groß, verwischt alles. Die Ergebnisse gelten für dieses Gitter, ein lineares Modell und erzeugte Kosten.
+
+[Ausführlich und verständlich erklärt, mit Fachteil](https://sebastianhanisch.net/loeser-treppe-erklaert.html)
+        """
+    )
+# erklaerseite:einfach:end
 
 with st.expander("So funktioniert die Glättung", expanded=True):
     st.markdown(
@@ -306,9 +319,10 @@ st.markdown(
 st.markdown("---")
 
 with st.expander("📐 Mathematische Formulierung"):
+    # erklaerseite:lesehilfe:start (erzeugt von tools/set_demo_explainer.py (Website-Repo) aus tools/content/explainers/loeser-treppe-erklaert.json, nicht von Hand ändern)
     st.markdown(
         r"""
-**Gegeben und gesucht.** Gegeben sind Fälle $(x_i, c_i)$ mit Merkmalen $x_i \in \mathbb{R}^p$ und beobachteten Bogenkosten $c_i \in \mathbb{R}^d$ und die Menge $W$ der Wege (0/1-Vektoren über die Bögen). Gesucht ist ein Modell $\hat c(x)$ mit geringem Regret des gewählten Weges.
+**Lesehilfe.** Gegeben sind Fälle $(x_i, c_i)$ mit Merkmalen $x_i$ und beobachteten Bogenkosten $c_i$ und die Menge $W$ der Wege; gesucht ist ein Modell $\hat c(x)$, dessen gewählter Weg wenig Regret hat. Der harte Regret hat fast überall den Gradienten null; die Glättung mit der Temperatur $T$ gibt ihm einen.
 
 | Symbol | Bedeutung |
 |---|---|
@@ -317,9 +331,17 @@ with st.expander("📐 Mathematische Formulierung"):
 | $c$, $\hat c$ | wahre und vorhergesagte Bogenkosten |
 | $w(\hat c)$ | der Weg mit den kleinsten vorhergesagten Kosten; bei Gleichstand rechts vor unten |
 | $z^*(c)$ | die besten wahren Kosten $\min_{w \in W} c^\top w$ |
+| $\ell$, $\ell_T$ | Regret des harten Lösers, Regret der Glättung |
 | $T > 0$ | Temperatur der Glättung, in Kosteneinheiten |
 | $\pi_T(w \mid \hat c)$ | Gibbs-Gewicht des Weges $w$ |
+| $\Delta$ | Vorhersage-Abstand $\hat c_1 - \hat c_2$ im Handbeispiel mit zwei Wegen |
 
+[Schritt für Schritt erklärt, mit Herleitung und Literatur](https://sebastianhanisch.net/loeser-treppe-erklaert.html#fachleute)
+        """
+    )
+    # erklaerseite:lesehilfe:end
+    st.markdown(
+        r"""
 **Regret (harter Löser).**
 
 $$\ell(\hat c, c) = c^\top w(\hat c) - z^*(c)$$
@@ -338,7 +360,7 @@ $$\frac{\partial \ell_T}{\partial \hat c} = -\frac{1}{T}\,\operatorname{Cov}\big
 
 Für das lineare Modell $\hat c = \theta^\top (1, x)$ folgt der Gradient nach $\theta$ aus der Kettenregel, gemittelt über die Fälle. Training: Adam (Lernrate 0,05, 300 Schritte, Start bei der KQ-Lösung).
 
-**Handbeispiel.** Zwei Wege mit je einem Bogen, $c = (3, 5)$, $\Delta = \hat c_1 - \hat c_2$. Der harte Regret ist $0$ für $\Delta \le 0$ und $2$ für $\Delta > 0$. Das Gewicht von Weg 2 ist $\sigma(\Delta / T)$ mit $\sigma(u) = 1/(1 + e^{-u})$, der geglättete Regret also $2\,\sigma(\Delta/T)$, seine Steigung nach $\hat c_1$ ist $\tfrac{2}{T}\,\sigma'(\Delta/T) > 0$ für jedes $\Delta$. Bei $\hat c = (4, 3)$, $T = 1$: Gewichte $0{,}2689$ und $0{,}7311$, erwartete Kosten $3 \cdot 0{,}2689 + 5 \cdot 0{,}7311 = 4{,}4621$.
+**Handbeispiel.** Zwei Wege mit je einem Bogen, $c = (3, 5)$, $\Delta = \hat c_1 - \hat c_2$. Der harte Regret ist $0$ für $\Delta \le 0$ und $2$ für $\Delta > 0$. Das Gewicht von Weg 2 ist $\sigma(\Delta / T)$ mit $\sigma(u) = 1/(1 + e^{-u})$, der geglättete Regret also $2\,\sigma(\Delta/T)$, seine Steigung nach $\hat c_1$ ist $\tfrac{2}{T}\,\sigma'(\Delta/T) > 0$ für jedes $\Delta$. Bei $\hat c = (4, 3)$, $T = 1$: Gewichte $0{,}2689$ und $0{,}7311$ (gerundet), erwartete Kosten $3 \cdot (1 - \sigma(1)) + 5 \cdot \sigma(1) = 4{,}4621$ mit den exakten Gewichten; die gerundeten Gewichte ergäben $4{,}4622$.
 
 **Zweiter Rechenweg (Summe-Produkt).** Auf dem azyklischen Gitter sei $a_e = -\hat c_e / T$, $\alpha_v$ die Log-Summe der Teilwege vom Start nach $v$ und $\beta_v$ die der Teilwege von $v$ zum Ziel:
 
@@ -361,5 +383,5 @@ st.markdown("---")
 st.caption(
     "Diese Demo ist Teil des Portfolios von [Sebastian Hanisch](https://sebastianhanisch.net) – "
     "Operations Research und Machine Learning ([Über mich](https://sebastianhanisch.net/ueber-mich.html)). "
-    "Mehr zu den Demos: [Interaktive Demos](https://sebastianhanisch.net/demos.html)."
+    "Mehr zur Reihe: [Entscheidungsorientiert: Regret bis Wahl](https://sebastianhanisch.net/konzepte-entscheidungsorientiert.html)."
 )
